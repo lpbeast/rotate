@@ -10,15 +10,15 @@ import (
 //rotates A-Za-z, leaves other characters untouched
 
 func rotate(i rune) rune {
-	if i >= 65 && i <= 90 {
+	if i >= 'A' && i <= 'Z' {
 		i += 13
-		if i > 90 {
+		if i > 'Z' {
 			i -= 26
 		}
 	}
-	if i >= 97 && i <= 122 {
+	if i >= 'a' && i <= 'z' {
 		i += 13
-		if i > 122 {
+		if i > 'z' {
 			i -= 26
 		}
 	}
