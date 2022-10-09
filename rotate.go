@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 //ROT13 program
@@ -36,62 +37,44 @@ func strprocess(s string) string {
 }
 
 func main() {
+	in := os.Stdin
+	out := os.Stdout
+	var err error
 	argcount := len(os.Args[1:])
-	switch {
-	case argcount == 0:
-		//Accept a line of text from console, rotate it, display output on console
-		fmt.Println("Enter text to rotate.")
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
-		rottext := strprocess(scanner.Text())
-		fmt.Println(rottext)
-		
-	case argcount == 1:
-		//Read the given file, rotate it, display output on console
-		fmt.Println("Input file is", os.Args[1])
-		
-		infile, err := os.Open(os.Args[1])
-		defer infile.Close()
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Exiting.")
-			return
+	if argcount > 0 {
+		for i := 1; i <= argcount; i++ {
+			parsed := strings.Split(os.Args[i], "=")
+			//if multiple input or output files are specified, only the first one given will be used
+			switch {
+			case parsed[0] == "-i":
+				if in == os.Stdin {
+					in, err = os.Open(parsed[1])
+					if err != nil {
+						fmt.Println(err)
+						fmt.Println("Exiting.")
+						return
+					}
+					defer in.Close()
+				}
+			case parsed[0] == "-o":
+				if out == os.Stdout {
+					out, err = os.Create(parsed[1])
+					if err != nil {
+						fmt.Println(err)
+						fmt.Println("Exiting.")
+						return
+					}
+					defer out.Close()
+				}
+			default:
+				fmt.Println("Invalid option")
+				fmt.Println("Valid options are -i=filename for an input file and -o=filename for an output file.")
+				return
+			}
 		}
-
-		scanner := bufio.NewScanner(infile)
-		for scanner.Scan() {
-			rottext := strprocess(scanner.Text())
-			fmt.Println(rottext)
-		}
-		
-	case argcount == 2:
-		//Read the first file named, rotate it, write output to the second file named.
-		fmt.Println("Input file is", os.Args[1])
-		fmt.Println("Output file is", os.Args[2])
-		
-		infile, err := os.Open(os.Args[1])
-		defer infile.Close()
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Exiting.")
-			return
-		}
-		
-		outfile, err := os.Create(os.Args[2])
-		defer outfile.Close()
-		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Exiting.")
-			return
-		}
-		
-		scanner := bufio.NewScanner(infile)
-		for scanner.Scan() {
-			rottext := strprocess(scanner.Text()) + "\n"
-			outfile.WriteString(rottext)
-		}
-		
-	default:
-		fmt.Println("Too many arguments.")
+	}
+	scanner := bufio.NewScanner(in)
+	for scanner.Scan() {
+		fmt.Fprintln(out, strprocess(scanner.Text()))
 	}
 }
