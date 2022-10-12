@@ -10,15 +10,15 @@ import (
 //ROT13 program
 //rotates A-Za-z, leaves other characters untouched
 
-func rotate(i rune) rune {
+func rotate(i rune, r int32) rune {
 	if i >= 'A' && i <= 'Z' {
-		i += 13
+		i += r
 		if i > 'Z' {
 			i -= 26
 		}
 	}
 	if i >= 'a' && i <= 'z' {
-		i += 13
+		i += r
 		if i > 'z' {
 			i -= 26
 		}
@@ -26,11 +26,11 @@ func rotate(i rune) rune {
 	return i
 }
 
-func strprocess(s string) string {
+func strprocess(s string, r rune) string {
 	var rotrunes []rune
 	clearrunes := []rune(s)
 	for _, v := range clearrunes {
-		u := rotate(v)
+		u := rotate(v, r)
 		rotrunes = append(rotrunes, u)
 	}
 	return string(rotrunes)
@@ -39,6 +39,8 @@ func strprocess(s string) string {
 func main() {
 	in := os.Stdin
 	out := os.Stdout
+	var rot int32
+	rot = 13
 	var err error
 	argcount := len(os.Args[1:])
 	if argcount > 0 {
@@ -66,15 +68,27 @@ func main() {
 					}
 					defer out.Close()
 				}
+			case parsed[0] == "-r":
+				var i int
+				_, err := fmt.Sscan(parsed[1], &i)
+				if err != nil {
+					fmt.Println(err)
+					fmt.Println("Exiting.")
+					return
+				}
+				rot = int32(i % 26)
 			default:
 				fmt.Println("Invalid option")
-				fmt.Println("Valid options are -i=filename for an input file and -o=filename for an output file.")
+				fmt.Println("Valid options are:")
+				fmt.Println("-i=filename for an input file.")
+				fmt.Println("-o=filename for an output file.")
+				fmt.Println("-r=nn to specify a rotation other than 13")
 				return
 			}
 		}
 	}
 	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
-		fmt.Fprintln(out, strprocess(scanner.Text()))
+		fmt.Fprintln(out, strprocess(scanner.Text(), rot))
 	}
 }
